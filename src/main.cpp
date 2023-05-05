@@ -1,39 +1,49 @@
-#include <iostream>
+#include <memory>  // for allocator, __shared_ptr_access
+#include <string>  // for char_traits, operator+, string, basic_string
 
-#include "ftxui/dom/elements.hpp"
-#include "ftxui/screen/screen.hpp"
-#include "ftxui/screen/string.hpp"
+#include "ftxui/component/captured_mouse.hpp"  // for ftxui
+#include "ftxui/component/component.hpp"       // for Input, Renderer, Vertical
+#include "ftxui/component/component_base.hpp"  // for ComponentBase
+#include "ftxui/component/component_options.hpp"  // for InputOption
+#include "ftxui/component/screen_interactive.hpp"  // for Component, ScreenInteractive
+#include "ftxui/dom/elements.hpp"  // for text, hbox, separator, Element, operator|, vbox, border
+#include "ftxui/util/ref.hpp"  // for Ref
 
-int main(void) {
+int main(int argc, const char* argv[]) {
   using namespace ftxui;
 
-  auto summary = [&] {
-    auto content = vbox({
-        hbox({text(L"- done:   "), text(L"3") | bold}) | color(Color::Green),
-        hbox({text(L"- active: "), text(L"2") | bold}) | color(Color::RedLight),
-        hbox({text(L"- queue:  "), text(L"9") | bold}) | color(Color::Red),
-    });
-    return window(text(L" Summary "), content);
-  };
+  std::string first_name;
+  std::string last_name;
+  std::string password;
 
-  auto document =  //
-      vbox({
-          hbox({
-              summary(),
-              summary(),
-              summary() | flex,
-          }),
-          summary(),
-          summary(),
-      });
+  Component input_first_name = Input(&first_name, "first name");
+  Component input_last_name = Input(&last_name, "last name");
 
-  // Limit the size of the document to 80 char.
-  document = document | size(WIDTH, LESS_THAN, 80);
+  InputOption password_option;
+  password_option.password = true;
+  Component input_password = Input(&password, "password", password_option);
 
-  auto screen = Screen::Create(Dimension::Full(), Dimension::Fit(document));
-  Render(screen, document);
+  auto component = Container::Vertical({
+      input_first_name,
+      input_last_name,
+      input_password,
+  });
 
-  std::cout << screen.ToString() << '\0' << std::endl;
+  auto renderer = Renderer(component, [&] {
+    return vbox({
+               text("Hello " + first_name + " " + last_name),
+               separator(),
+               hbox(text(" First name : "), input_first_name->Render()),
+               hbox(text(" Last name  : "), input_last_name->Render()),
+               hbox(text(" Password   : "), input_password->Render()),
+           }) |
+           border;
+  });
 
-  return EXIT_SUCCESS;
+  auto screen = ScreenInteractive::TerminalOutput();
+  screen.Loop(renderer);
 }
+
+// Copyright 2020 Arthur Sonzogni. All rights reserved.
+// Use of this source code is governed by the MIT license that can be found in
+// the LICENSE file.
