@@ -1,16 +1,25 @@
-#include <string>  // for string, allocator, basic_string
-#include <vector>  // for vector
+#include <string> // for string, allocator, basic_string
+#include <vector> // for vector
 
-#include "ftxui/component/captured_mouse.hpp"      // for ftxui
-#include "ftxui/component/component.hpp"           // for Radiobox
-#include "ftxui/component/screen_interactive.hpp"  // for ScreenInteractive
+#include "ftxui/component/captured_mouse.hpp"     // for ftxui
+#include "ftxui/component/component.hpp"          // for Radiobox
+#include "ftxui/component/screen_interactive.hpp" // for ScreenInteractive
 
 using namespace ftxui;
 
-enum font_style { fnormal, fbold, fdim, finverted, funderlined };
+enum font_style
+{
+  fnormal,
+  fbold,
+  fdim,
+  finverted,
+  funderlined
+};
 
-Component Wrap(int fs, Component component) {
-  return Renderer(component, [fs, component] {
+Component Wrap(int fs, Component component)
+{
+  return Renderer(component, [fs, component]
+                  {
     switch (fs) {
       case fnormal:
         return hbox({
@@ -40,22 +49,22 @@ Component Wrap(int fs, Component component) {
 
       default:
         break;
-    }
-  });
+    } });
 }
 
-int main(int argc, const char* argv[]) {
+int main(int argc, const char *argv[])
+{
   std::vector<std::string> radiobox_list = {"normal", "bold", "dim", "inverted",
                                             "underlined"};
   int selected = 0;
 
-  auto txt = Renderer([] { return text("hello world"); });
+  auto txt = Renderer([]
+                      { return text("hello world"); });
 
   auto x = Radiobox(&radiobox_list, &selected);
 
-  auto y = Renderer(x, [&] {
-    return vbox({x->Render(), separator(), Wrap(selected, txt)->Render()});
-  });
+  auto y = Renderer(x, [&]
+                    { return vbox({x->Render(), separator(), Wrap(selected, txt)->Render()}); });
 
   auto screen = ScreenInteractive::TerminalOutput();
   screen.Loop(y);
